@@ -5,18 +5,18 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class CalcSalary {
+    private static final String PENSION = "pensionContr";
+    private static final String DISABILITY = "disabilityContr";
+    private static final String SICKNESS = "sicknessContr";
+    private static final String HEALTH = "healthInsurance";
+    private static final String INCOME1 = "incomeTax";
+    private static final String INCOME2 = "incomeTax1";
+    private static final String INCOME3 = "incomeTax2";
 
     public static void main(String[] args) {
         BigDecimal salaryGross = new BigDecimal(args[0]);
-        Map<String, Double> taxes = new HashMap<>();
 
-        taxes.put("pensionContr", Double.valueOf(args[1]));
-        taxes.put("disabilityContr", Double.valueOf(args[2]));
-        taxes.put("sicknessContr", Double.valueOf(args[3]));
-        taxes.put("healthInsurance", Double.valueOf(args[4]));
-        taxes.put("incomeTax", Double.valueOf(args[5]));
-        taxes.put("incomeTax1", Double.valueOf(args[6]));
-        taxes.put("incomeTax2", Double.valueOf(args[7]));
+        Map<String, Double> taxes = new HashMap<>(createTaxesMap(args));
 
         BigDecimal salaryNet = calcSalary(salaryGross, taxes);
 
@@ -34,10 +34,7 @@ public class CalcSalary {
         BigDecimal incomeCost = calcIncome(incomeTax, healthInsBase).round(mc);
         BigDecimal tax = calcTax(incomeCost, taxes);
 
-//        Debug
-//        System.out.println(socialInsAmount + " " + " " + healthInsBase + " " + healthInsAmount + " " + incomeCost + " " + tax + " " + salaryNet);
-
-        return salaryNet;
+        return salary.subtract(socialInsAmount.add(healthInsAmount).add(tax));
     }
 
     public static BigDecimal calcPercent(BigDecimal mainNum, double percent) {
