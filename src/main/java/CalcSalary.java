@@ -29,9 +29,9 @@ public class CalcSalary {
 
         MathContext mc = new MathContext(salary.precision());
 
-        BigDecimal healthInsBase = calcInsurance(salary, taxes, "insBase");
-        BigDecimal socialInsAmount = calcInsurance(salary, taxes, "socialIns");
-        BigDecimal healthInsAmount = calcInsurance(salary, taxes, "healthIns");
+        BigDecimal socialInsAmount = calcInsAmount(salary,  taxes);
+        BigDecimal healthInsBase = calcInsBase(salary, socialInsAmount);
+        BigDecimal healthInsAmount = calcHealthIns(salary, taxes.get(HEALTH), socialInsAmount);
         BigDecimal incomeCost = calcIncome(incomeTax, healthInsBase).round(mc);
         BigDecimal tax = calcTax(incomeCost, taxes);
 
@@ -57,16 +57,8 @@ public class CalcSalary {
         return taxes;
     }
 
-    public static BigDecimal calcInsurance(BigDecimal salary, Map<String, Double> taxes, String whatReturn) {
-        double healthInsurance = taxes.get(HEALTH);
-
-        BigDecimal socialInsAmount = calcInsAmount(salary, taxes);
-
-        return switch (whatReturn) {
-            case "insBase" -> calcInsBase(salary, socialInsAmount);
-            case "socialIns" -> socialInsAmount;
-            default -> calcPercent(calcInsBase(salary, socialInsAmount), healthInsurance);
-        };
+    public static BigDecimal calcHealthIns(BigDecimal salary, double healthInsurance, BigDecimal insuranceAmount) {
+        return calcPercent(calcInsBase(salary, insuranceAmount), healthInsurance);
     }
 
     public static BigDecimal calcInsBase(BigDecimal salary, BigDecimal socialInsAmount) {
@@ -85,11 +77,7 @@ public class CalcSalary {
     }
 
     public static BigDecimal calcIncome(double incomeTax, BigDecimal healthInsBase) {
-        BigDecimal incomeCost;
-
-        incomeCost = healthInsBase.subtract(BigDecimal.valueOf(incomeTax));
-
-        return incomeCost;
+        return healthInsBase.subtract(BigDecimal.valueOf(incomeTax));
     }
 
     public static BigDecimal calcTax(BigDecimal incomeCost, Map<String, Double> taxes) {
@@ -100,7 +88,6 @@ public class CalcSalary {
         double incomeTax2 = taxes.get(INCOME3);
 
         tax = incomeCost.multiply(BigDecimal.valueOf(incomeTax1)).divide(BigDecimal.valueOf(PERCENT_DIVIDER), decimalPlaces, RoundingMode.HALF_DOWN);
-        System.out.println(tax);
         tax = tax.subtract(BigDecimal.valueOf(incomeTax2));
 
         return tax;
