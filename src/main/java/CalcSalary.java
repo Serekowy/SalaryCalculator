@@ -12,6 +12,7 @@ public class CalcSalary {
     private static final String INCOME1 = "incomeTax";
     private static final String INCOME2 = "incomeTax1";
     private static final String INCOME3 = "incomeTax2";
+    private static final int PERCENT_DIVIDER = 100;
 
     public static void main(String[] args) {
         BigDecimal salaryGross = new BigDecimal(args[0]);
@@ -28,9 +29,9 @@ public class CalcSalary {
 
         MathContext mc = new MathContext(salary.precision());
 
-        BigDecimal healthInsBase = calcInsurance(salary, taxes, "base");
-        BigDecimal socialInsAmount = calcInsurance(salary, taxes, "insurance");
-        BigDecimal healthInsAmount = calcInsurance(salary, taxes, "");
+        BigDecimal healthInsBase = calcInsurance(salary, taxes, "insBase");
+        BigDecimal socialInsAmount = calcInsurance(salary, taxes, "socialIns");
+        BigDecimal healthInsAmount = calcInsurance(salary, taxes, "healthIns");
         BigDecimal incomeCost = calcIncome(incomeTax, healthInsBase).round(mc);
         BigDecimal tax = calcTax(incomeCost, taxes);
 
@@ -38,7 +39,8 @@ public class CalcSalary {
     }
 
     public static BigDecimal calcPercent(BigDecimal mainNum, double percent) {
-        return mainNum.multiply(BigDecimal.valueOf(percent)).divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+        int decimalPlaces = 2;
+        return mainNum.multiply(BigDecimal.valueOf(percent)).divide(BigDecimal.valueOf(PERCENT_DIVIDER), decimalPlaces, RoundingMode.HALF_UP);
     }
 
     public static Map<String, Double> createTaxesMap(String[] args) {
@@ -58,23 +60,28 @@ public class CalcSalary {
     public static BigDecimal calcInsurance(BigDecimal salary, Map<String, Double> taxes, String whatReturn) {
         double healthInsurance = taxes.get(HEALTH);
 
+        BigDecimal socialInsAmount = calcInsAmount(salary, taxes);
+
+        return switch (whatReturn) {
+            case "insBase" -> calcInsBase(salary, socialInsAmount);
+            case "socialIns" -> socialInsAmount;
+            default -> calcPercent(calcInsBase(salary, socialInsAmount), healthInsurance);
+        };
+    }
+
+    public static BigDecimal calcInsBase(BigDecimal salary, BigDecimal socialInsAmount) {
+        return salary.subtract(socialInsAmount);
+    }
+
+    public static BigDecimal calcInsAmount(BigDecimal salary, Map<String, Double> taxes) {
         BigDecimal pensionAmount = calcPercent(salary, taxes.get(PENSION));
         BigDecimal disabilityAmount = calcPercent(salary, taxes.get(DISABILITY));
         BigDecimal sicknessAmount = calcPercent(salary, taxes.get(SICKNESS));
 
         BigDecimal socialInsAmount = BigDecimal.valueOf(0);
-        BigDecimal healthInsAmount;
-        BigDecimal healthInsBase;
 
-        socialInsAmount = socialInsAmount.add(pensionAmount).add(disabilityAmount).add(sicknessAmount);
-        healthInsBase = salary.subtract(socialInsAmount);
-        healthInsAmount = calcPercent(healthInsBase, healthInsurance);
+        return socialInsAmount.add(pensionAmount).add(disabilityAmount).add(sicknessAmount);
 
-        return switch (whatReturn) {
-            case "base" -> healthInsBase;
-            case "insurance" -> socialInsAmount;
-            default -> healthInsAmount;
-        };
     }
 
     public static BigDecimal calcIncome(double incomeTax, BigDecimal healthInsBase) {
@@ -87,11 +94,13 @@ public class CalcSalary {
 
     public static BigDecimal calcTax(BigDecimal incomeCost, Map<String, Double> taxes) {
         BigDecimal tax;
+        int decimalPlaces = 0;
 
         double incomeTax1 = taxes.get(INCOME2);
         double incomeTax2 = taxes.get(INCOME3);
 
-        tax = incomeCost.multiply(BigDecimal.valueOf(incomeTax1)).divide(BigDecimal.valueOf(100), 0, RoundingMode.HALF_DOWN);
+        tax = incomeCost.multiply(BigDecimal.valueOf(incomeTax1)).divide(BigDecimal.valueOf(PERCENT_DIVIDER), decimalPlaces, RoundingMode.HALF_DOWN);
+        System.out.println(tax);
         tax = tax.subtract(BigDecimal.valueOf(incomeTax2));
 
         return tax;
