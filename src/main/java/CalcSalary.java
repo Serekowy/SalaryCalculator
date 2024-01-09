@@ -61,11 +61,11 @@ public class CalcSalary {
         return calcPercent(calcSocialIns(salary, insuranceAmount), healthInsurance);
     }
 
-    public static BigDecimal calcSocialIns(BigDecimal salary, BigDecimal socialInsAmount) {
+    public static BigDecimal calcInsBase(BigDecimal salary, BigDecimal socialInsAmount) {
         return salary.subtract(socialInsAmount);
     }
 
-    public static BigDecimal calcInsAmount(BigDecimal salary, Map<String, Double> taxes) {
+    public static BigDecimal calcSocialIns(BigDecimal salary, Map<String, Double> taxes) {
         BigDecimal pensionAmount = calcPercent(salary, taxes.get(PENSION));
         BigDecimal disabilityAmount = calcPercent(salary, taxes.get(DISABILITY));
         BigDecimal sicknessAmount = calcPercent(salary, taxes.get(SICKNESS));
