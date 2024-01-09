@@ -58,7 +58,7 @@ public class CalcSalary {
     }
 
     public static BigDecimal calcHealthIns(BigDecimal salary, double healthInsurance, BigDecimal insuranceAmount) {
-        return calcPercent(calcSocialIns(salary, insuranceAmount), healthInsurance);
+        return calcPercent(calcInsBase(salary, insuranceAmount), healthInsurance);
     }
 
     public static BigDecimal calcInsBase(BigDecimal salary, BigDecimal socialInsAmount) {
