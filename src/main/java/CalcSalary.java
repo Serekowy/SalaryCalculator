@@ -29,7 +29,7 @@ public class CalcSalary {
 
         MathContext mc = new MathContext(salary.precision());
 
-        BigDecimal socialInsAmount = calcInsAmount(salary,  taxes);
+        BigDecimal socialInsAmount = calcSocialIns(salary,  taxes);
         BigDecimal healthInsBase = calcInsBase(salary, socialInsAmount);
         BigDecimal healthInsAmount = calcHealthIns(salary, taxes.get(HEALTH), socialInsAmount);
         BigDecimal incomeCost = calcIncome(incomeTax, healthInsBase).round(mc);
@@ -58,10 +58,10 @@ public class CalcSalary {
     }
 
     public static BigDecimal calcHealthIns(BigDecimal salary, double healthInsurance, BigDecimal insuranceAmount) {
-        return calcPercent(calcInsBase(salary, insuranceAmount), healthInsurance);
+        return calcPercent(calcSocialIns(salary, insuranceAmount), healthInsurance);
     }
 
-    public static BigDecimal calcInsBase(BigDecimal salary, BigDecimal socialInsAmount) {
+    public static BigDecimal calcSocialIns(BigDecimal salary, BigDecimal socialInsAmount) {
         return salary.subtract(socialInsAmount);
     }
 
